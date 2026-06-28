@@ -86,7 +86,10 @@ export class ShopifyAuth {
     });
 
     if (!res.ok) {
-      const text = await res.text();
+      // Cap the echoed body: it should only ever be a short OAuth error like
+      // {"error":"invalid_client"}, but truncate defensively so an unexpected
+      // large/sensitive response is never propagated wholesale into logs.
+      const text = (await res.text()).slice(0, 200);
       throw new Error(
         `Shopify token exchange failed (${res.status}): ${text}`
       );

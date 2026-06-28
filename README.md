@@ -4,12 +4,10 @@
 
 MCP Server for Shopify API, enabling interaction with store data through GraphQL API. This server provides tools for managing products, customers, orders, and more.
 
-**📦 Package Name: `shopify-mcp`**
-**🚀 Command: `shopify-mcp` (NOT `shopify-mcp-server`)**
+**📦 Package Name: `@klaudworks/shopify-mcp`**
+**🚀 Command: `shopify-mcp`**
 
-<a href="https://glama.ai/mcp/servers/@GeLi2001/shopify-mcp">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@GeLi2001/shopify-mcp/badge" alt="Shopify MCP server" />
-</a>
+> Security-hardened fork of [`shopify-mcp`](https://github.com/GeLi2001/shopify-mcp) (MIT): updated dependencies (0 known runtime vulnerabilities), strict `*.myshopify.com` domain validation, and a leaner dependency tree.
 
 ## Features
 
@@ -64,7 +62,7 @@ If you have an existing custom app with a static `shpat_` access token, you can 
     "shopify": {
       "command": "npx",
       "args": [
-        "shopify-mcp",
+        "@klaudworks/shopify-mcp",
         "--clientId",
         "<YOUR_CLIENT_ID>",
         "--clientSecret",
@@ -85,7 +83,7 @@ If you have an existing custom app with a static `shpat_` access token, you can 
     "shopify": {
       "command": "npx",
       "args": [
-        "shopify-mcp",
+        "@klaudworks/shopify-mcp",
         "--accessToken",
         "<YOUR_ACCESS_TOKEN>",
         "--domain",
@@ -106,7 +104,7 @@ Locations for the Claude Desktop config file:
 **Client Credentials:**
 
 ```bash
-claude mcp add shopify -- npx shopify-mcp \
+claude mcp add shopify -- npx @klaudworks/shopify-mcp \
   --clientId YOUR_CLIENT_ID \
   --clientSecret YOUR_CLIENT_SECRET \
   --domain your-store.myshopify.com
@@ -115,7 +113,7 @@ claude mcp add shopify -- npx shopify-mcp \
 **Static Access Token (legacy):**
 
 ```bash
-claude mcp add shopify -- npx shopify-mcp \
+claude mcp add shopify -- npx @klaudworks/shopify-mcp \
   --accessToken YOUR_ACCESS_TOKEN \
   --domain your-store.myshopify.com
 ```
@@ -141,7 +139,7 @@ If you prefer to use environment variables instead of command-line arguments:
 
 2. Run the server with npx:
    ```
-   npx shopify-mcp
+   npx @klaudworks/shopify-mcp
    ```
 
 ### Direct Installation (Optional)
@@ -149,7 +147,7 @@ If you prefer to use environment variables instead of command-line arguments:
 If you want to install the package globally:
 
 ```
-npm install -g shopify-mcp
+npm install -g @klaudworks/shopify-mcp
 ```
 
 Then run it:

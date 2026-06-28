@@ -22,12 +22,9 @@ const SHOPIFY_CLIENT_ID =
   argv.clientId || process.env.SHOPIFY_CLIENT_ID;
 const SHOPIFY_CLIENT_SECRET =
   argv.clientSecret || process.env.SHOPIFY_CLIENT_SECRET;
-const MYSHOPIFY_DOMAIN = argv.domain || process.env.MYSHOPIFY_DOMAIN;
+const RAW_DOMAIN = argv.domain || process.env.MYSHOPIFY_DOMAIN;
 
 const useClientCredentials = !!(SHOPIFY_CLIENT_ID && SHOPIFY_CLIENT_SECRET);
-
-// Store in process.env for backwards compatibility
-process.env.MYSHOPIFY_DOMAIN = MYSHOPIFY_DOMAIN;
 
 // Validate required environment variables
 if (!SHOPIFY_ACCESS_TOKEN && !useClientCredentials) {
@@ -41,10 +38,27 @@ if (!SHOPIFY_ACCESS_TOKEN && !useClientCredentials) {
   process.exit(1);
 }
 
-if (!MYSHOPIFY_DOMAIN) {
+if (!RAW_DOMAIN) {
   console.error("Error: MYSHOPIFY_DOMAIN is required.");
   console.error("Please provide it via command line argument or .env file.");
   console.error("  Command line: --domain=your-store.myshopify.com");
+  process.exit(1);
+}
+
+// Normalize and strictly validate the shop domain before it is ever used to
+// build request URLs. The access token — and the client secret, during the
+// OAuth token exchange — is sent to this host, so it must be a genuine Shopify
+// *.myshopify.com domain, never an attacker-supplied host, scheme, or path.
+const MYSHOPIFY_DOMAIN = String(RAW_DOMAIN)
+  .trim()
+  .replace(/^https?:\/\//i, "")
+  .replace(/\/+$/, "");
+
+if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(MYSHOPIFY_DOMAIN)) {
+  console.error(`Error: invalid shop domain "${RAW_DOMAIN}".`);
+  console.error(
+    "Expected a bare myshopify.com host, e.g. your-store.myshopify.com",
+  );
   process.exit(1);
 }
 
@@ -62,8 +76,6 @@ if (useClientCredentials) {
 } else {
   accessToken = SHOPIFY_ACCESS_TOKEN!;
 }
-
-process.env.SHOPIFY_ACCESS_TOKEN = accessToken;
 
 // Create Shopify GraphQL client
 const API_VERSION = argv.apiVersion || process.env.SHOPIFY_API_VERSION || "2026-01";
@@ -95,15 +107,20 @@ const server = new McpServer({
     "MCP Server for Shopify API, enabling interaction with store data through GraphQL API"
 });
 
-// Register all tools with the MCP server
+// Register all tools with the MCP server.
+// NOTE: server.tool()'s generics try to deeply infer each Zod shape; across our
+// heterogeneous tool array that exceeds TS's instantiation depth (TS2589). The
+// shape is still validated by the SDK at runtime — we only widen the
+// compile-time type at this single boundary.
 for (const tool of tools) {
   server.tool(
     tool.name,
-    tool.schema.shape,
-    async (args) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tool.schema.shape as any,
+    async (args: Record<string, unknown>) => {
       const result = await tool.execute(args);
       return {
-        content: [{ type: "text", text: JSON.stringify(result) }]
+        content: [{ type: "text" as const, text: JSON.stringify(result) }]
       };
     }
   );
